@@ -12,29 +12,18 @@
 
 ### Пакет
 
-Файл `gost-belstu.typ` можно просто скопировать куда угодно – у него нет зависимостей. Ещё есть скрипт для установки `install.sh`, он положит всё на свои места.
+Файл `gost-belstu.typ` можно просто скопировать куда угодно – у него нет зависимостей.
 
-**К сожалению скрипта установки для Windows сейчас тут нету (можете предложить свой вариант).**
-
-Клонируйте репозиторий, запустите скрипт установки (просто копирует файлы в нужное место):
+Скачать последнюю версию можно так:
 ```sh
-git clone --depth 1 https://github.com/qobrito/gost-belstu.git
-cd gost-belstu
-./install.sh
-```
-
-Или просто скачать один файл:
-```sh
-wget https://raw.githubusercontent.com/qobrito/gost-belstu/refs/heads/main/gost-belstu.typ
+wget https://raw.githubusercontent.com/qobrito/gost-belstu/refs/heads/main/gost-belstu.typ -O gost-belstu.typ
 ```
 
 ## Как использовать?
 
 Чтобы применить стили, подключите эту библиотеку и передайте всё содержимое документа функции `styles` (`#show: it => gost.styles(it)`), вот:
 ```typ
-#import "@local/gost-belstu:0.0.9" as gost
-// или если вы скачивли файл:
-// #import "gost-belstu.typ" as gost
+#import "gost-belstu.typ" as gost
 
 #show: it => gost.styles(it);
 // для отладки можно использовать:
