@@ -175,59 +175,46 @@
   let get-enum-symbol(n) = if n >= enum-symbols.len() { n - enum-symbols.len() + 1 } else { enum-symbols.at(n) }
 
   set list(marker: list-marker, body-indent: body-indent)
-  set enum(numbering: n => [#get-enum-symbol(n))], body-indent: body-indent)
+  set enum(body-indent: body-indent)
 
-  let depth = state("belstu-gost_list-depth", 0) // общий для list и enum
-  let enum-parents = state("belstu-gost_enum-parents", ())
-
-  show list: it => context {
-    let d = depth.get()
-    let marker = if type(it.marker) == array {
-      it.marker.at(calc.rem(d, it.marker.len()))
-    } else if type(it.marker) == function {
-      (it.marker)(d)
-    } else { it.marker }
-
-    let x = (d + 1) * paragraph-indent
-    let hang = x + measure(marker).width + it.body-indent
-
-    for item in it.children {
-      block(spacing: if it.tight { par.leading } else { par.spacing })[
-        #set par(hanging-indent: hang, first-line-indent: 0pt)
-        #h(x)#marker#h(it.body-indent)#{
-          depth.update(n => n + 1)
-          item.body
-          depth.update(n => n - 1)
-        }
-      ]
-    }
+  // 8.6: вид пункта зависит только от уровня вложенности,
+  // а не от того, написан список через «-» (list) или «+» (enum):
+  //   1-й уровень — тире, 2-й — а), б), в), 3-й и глубже — 1), 2), 3)
+  let gost-list-label(level, n) = if level == 0 {
+    list-marker
+  } else if level == 1 {
+    [#get-enum-symbol(n))]
+  } else {
+    [#n)]
   }
 
-  show enum: it => context {
+  let depth = state("belstu-gost_list-depth", 0) // общий для list и enum
+
+  // start — номер первого пункта; у enum каждый пункт может задать свой номер
+  let gost-list(it, start) = context {
     let d = depth.get()
-    let parents = enum-parents.get()
     let x = (d + 1) * paragraph-indent
-    let n = if it.start == auto { 1 } else { it.start }
+    let n = start
 
     for item in it.children {
       if item.has("number") and item.number != auto { n = item.number }
-      let label = if it.full { numbering(it.numbering, ..parents, n) } else { numbering(it.numbering, n) }
+      let label = gost-list-label(d, n)
       let hang = x + measure(label).width + it.body-indent
-      let cur = n
 
       block(spacing: if it.tight { par.leading } else { par.spacing })[
         #set par(hanging-indent: hang, first-line-indent: 0pt)
         #h(x)#label#h(it.body-indent)#{
           depth.update(k => k + 1)
-          enum-parents.update(a => { a.push(cur); a })
           item.body
-          enum-parents.update(a => { let _ = a.pop(); a })
           depth.update(k => k - 1)
         }
       ]
       n += 1
     }
   }
+
+  show list: it => gost-list(it, 1)
+  show enum: it => gost-list(it, if it.start == auto { 1 } else { it.start })
 
 
   //---------- Формулы ----------//
