@@ -582,7 +582,7 @@
 // - minus: "word" — «минус 5» (для текста), "sign" — «−5» (для таблиц и формул).
 // - Целая часть из 5 и более цифр разбивается на группы по три
 //   неразрывным пробелом: 12 345. Всё число в box, чтобы не переносилось.
-#let style-number(number, digits: 3, scientific: false, minus: "word") = {
+#let style-number(number, digits: 3, scientific: false, minus: "sign") = {
   assert(minus in ("word", "sign"), message: "minus должен быть \"word\" или \"sign\"")
   assert(type(digits) == int and digits >= 0, message: "digits должно быть целым числом >= 0")
 
