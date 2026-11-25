@@ -35,6 +35,9 @@
 // отступ у списков такой-же как и абзацный отступ
 #let list-indent = paragraph-indent;
 
+// отступ у формул
+#let spacing-gost_any-equation = 12pt;
+#let spacing-gost_equation-any = 12pt;
 
 #let spacing-gost-page-margin-left = 23mm;
 #let spacing-gost-page-margin-right = 10mm;
@@ -224,6 +227,14 @@
   }
 
 
+  //---------- Формулы ----------//
+
+  show math.equation: set text(font: ("Times New Roman"))
+  show math.equation.where(block: true): set block(above: spacing-gost_any-equation, below: spacing-gost_equation-any)
+  show math.equation: set math.equation(numbering: n => context {
+    text(font: "Times New Roman", numbering("(1.1)", counter(heading).get().first(), n))
+  })
+
 
 
   //---------- Разделы ----------//
@@ -403,6 +414,13 @@
   counter(figure.where(kind: image)).update(0)
   counter(figure.where(kind: table)).update(0)
   counter(figure.where(kind: raw)).update(0)
+
+  // формулы в приложении нумеруются буквой приложения: (А.1)
+  counter(math.equation).update(0)
+  set math.equation(numbering: n => context {
+    let appendix = appendix-counter.get().first()
+    text(font: "Times New Roman")[(#get-appendix-symbol(appendix - 1).#n)]
+  })
 
   // если всего одно приложение, то подпись должна быть сверху
   // TODO: проверить какой именно numbering должен быть, если всего один элемент в приложении
