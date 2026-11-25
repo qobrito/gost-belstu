@@ -16,6 +16,9 @@
 
 #lorem(56)
 
+$ y = x^2 + 1 $
+#gost.formula-note[где $x$ -- переменная.]
+
 #figure(
     table(columns: 4,
         ..range(8).map(i => lorem(3))

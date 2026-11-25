@@ -29,3 +29,15 @@ wget https://raw.githubusercontent.com/qobrito/gost-belstu/refs/heads/main/gost-
 // для отладки можно использовать:
 // #show: gost.styles-debug
 ```
+
+## Формулы
+
+Блочные формулы набираются шрифтом Times New Roman (для символов, которых в нём нет, например ∑, запасным служит New Computer Modern Math), нумеруются справа в пределах раздела — `(1.1)`, `(2.3)` (в приложениях — `(А.1)`) — и отделяются от текста отступами 12 пт. Чтобы отключить нумерацию у одной формулы: `#math.equation(block: true, numbering: none, $...$)`.
+
+Пояснение к формуле («где ...») оформляется без абзацного отступа с помощью `formula-note`:
+```typ
+$ y = x^2 + 1 $
+#gost.formula-note[где $x$ -- переменная.]
+```
+
+Известные ограничения: в математическом режиме у Times New Roman нет математической таблицы, поэтому Typst выдаёт предупреждение «current font is not designed for math», а одиночные латинские буквы подменяются курсивными глифами New Computer Modern Math. Чтобы получить именно Times New Roman, оберните переменные в `text(style: "italic")[...]`.

@@ -73,6 +73,10 @@
 #let spacing-gost_any-figure = 14pt;
 #let spacing-gost_figure-any = 14pt;
 
+// отступы до и после блочной формулы
+#let spacing-gost_any-equation = 12pt;
+#let spacing-gost_equation-any = 12pt;
+
 
 // deprecated
 #let heading-unmarked(body) = align(center)[#heading(
@@ -82,6 +86,13 @@
 
 // deprecated
 #let heading-unlisted = heading-unmarked;
+
+// Пояснение к формуле («где ...») — без абзацного отступа.
+// Использование:  #gost.formula-note[где $x$ -- ...]
+#let formula-note(body) = block(above: 0pt, below: 6pt)[
+  #set par(first-line-indent: 0pt)
+  #body
+]
 
 #let style-italze-latin(body) = {
   show regex("\p{script=Latin}+"): it => text(style: "italic")[#it.text]
@@ -311,6 +322,25 @@
   show figure: it => {v(spacing-gost_any-figure - 6pt);it;v(spacing-gost_figure-any - 6pt);};
   // TODO: избавиться от магических чисел
 
+  //---------- Формулы ----------//
+
+  // У Times New Roman нет математической таблицы, поэтому для символов,
+  // которых в нём нет (∑, ⌊⌋ и т.п.), запасным указан New Computer Modern Math.
+  show math.equation: set text(font: ("Times New Roman", "New Computer Modern Math"))
+
+  // Отступы до и после блочной формулы
+  show math.equation.where(block: true): set block(above: spacing-gost_any-equation, below: spacing-gost_equation-any)
+
+  // Нумерация в пределах раздела, справа: (1.1), (2.3). Сбрасывается на каждом
+  // заголовке первого уровня. Отключить для одной формулы: #set math.equation(numbering: none)
+  set math.equation(numbering: n => context {
+    numbering("(1.1)", counter(heading).get().first(), n)
+  })
+  show heading.where(level: 1): it => {
+    counter(math.equation).update(0);
+    it
+  }
+
   //---------- Картинки ----------//
 
   // Замена стандартного «Рис.» на «Рисунок»
@@ -430,6 +460,13 @@
   }
   
   show: figure-style;
+
+  // формулы в приложении нумеруются буквой приложения: (А.1)
+  counter(math.equation).update(0)
+  set math.equation(numbering: n => context {
+    let appendix = appendix-counter.get().first()
+    [(#get-appendix-symbol(appendix - 1).#n)]
+  })
 
   context {
     let appendix = appendix-counter.get().first()
