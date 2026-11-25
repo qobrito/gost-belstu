@@ -235,7 +235,14 @@
   show math.equation: set text(font: (default-font-name))
   show math.equation.where(block: true): set block(above: spacing-gost_any-equation, below: spacing-gost_equation-any)
   show math.equation: set math.equation(numbering: n => context {
-    text(font: default-font-name, numbering("(1.1)", counter(heading).get().first(), n))
+    // в разделе с ненумерованным заголовком (Введение, Заключение и т.п.)
+    // номер раздела не добавляется, чтобы не совпадать с предыдущим разделом
+    let h1 = query(selector(heading.where(level: 1)).before(here()))
+    if h1.len() > 0 and h1.last().numbering == none {
+      text(font: default-font-name, numbering("(1)", n))
+    } else {
+      text(font: default-font-name, numbering("(1.1)", counter(heading).get().first(), n))
+    }
   })
 
 
@@ -320,6 +327,7 @@
     counter(figure.where(kind: table)).update(0);
     counter(figure.where(kind: raw)).update(0);
     counter(figure.where(kind: image)).update(0);
+    counter(math.equation).update(0);
     if counter("belstu-gost_headings").get().at(0) != 0 {
       pagebreak();
     }
@@ -430,7 +438,8 @@
 
   // формулы в приложении нумеруются буквой приложения: (А.1)
   counter(math.equation).update(0)
-  set math.equation(numbering: n => context {
+  // именно show-set, иначе его перекрывает show-set из styles
+  show math.equation: set math.equation(numbering: n => context {
     let appendix = appendix-counter.get().first()
     text(font: default-font-name)[(#get-appendix-symbol(appendix - 1).#n)]
   })
