@@ -232,7 +232,8 @@
 
   //---------- Формулы ----------//
 
-  show math.equation: set text(font: (default-font-name))
+  // TODO: каким-то образом нужно сделать так, чтобы шрифт формул был в Times New Roman
+  show math.equation: set text(font: "New Computer Modern Math")
   show math.equation.where(block: true): set block(above: spacing-gost_any-equation, below: spacing-gost_equation-any)
   show math.equation: set math.equation(numbering: n => context {
     // в разделе с ненумерованным заголовком (Введение, Заключение и т.п.)
