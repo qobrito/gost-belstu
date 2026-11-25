@@ -14,7 +14,7 @@
 // TODO: styles-debug: сделать предупреждения для русской «и», «щ» и «ъ» при беларусском языке, и для беларусской «Ў» при русском языке
 
 
-
+#let default-font-name = "Times New Roman";
 #let font-size = 14pt;
 
 // размер заголовков
@@ -96,7 +96,7 @@
 #let style-fix-common-styling-issues(body) = {
 
   // без моноширных излишеств
-  show raw.where(block: false): it => text(font: "Times New Roman", size: font-size, it.text)
+  show raw.where(block: false): it => text(font: default-font-name, size: font-size, it.text)
 
   // без жирного текста
   show strong: it => it.body
@@ -132,7 +132,7 @@
   }
 
   set text(
-    font: "Times New Roman",
+    font: default-font-name,
     font-size,
     lang: lang,
     fallback: false, // false на случай если не будут найдены нужные глифы в шрифте или не найдётся шрифт — это будет ясно видно
@@ -229,10 +229,10 @@
 
   //---------- Формулы ----------//
 
-  show math.equation: set text(font: ("Times New Roman"))
+  show math.equation: set text(font: (default-font-name))
   show math.equation.where(block: true): set block(above: spacing-gost_any-equation, below: spacing-gost_equation-any)
   show math.equation: set math.equation(numbering: n => context {
-    text(font: "Times New Roman", numbering("(1.1)", counter(heading).get().first(), n))
+    text(font: default-font-name, numbering("(1.1)", counter(heading).get().first(), n))
   })
 
 
@@ -419,7 +419,7 @@
   counter(math.equation).update(0)
   set math.equation(numbering: n => context {
     let appendix = appendix-counter.get().first()
-    text(font: "Times New Roman")[(#get-appendix-symbol(appendix - 1).#n)]
+    text(font: default-font-name)[(#get-appendix-symbol(appendix - 1).#n)]
   })
 
   // если всего одно приложение, то подпись должна быть сверху
