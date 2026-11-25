@@ -93,7 +93,7 @@
 }
 
 
-#let style-fix-common-styling-issues(body) = {
+#let style-fix-common-styling-issues(body, lang) = {
 
   // без моноширных излишеств
   show raw.where(block: false): it => text(font: default-font-name, size: font-size, it.text)
@@ -104,9 +104,9 @@
   // без курсива
   show emph: it => it.body
 
-  // заменять «ё» на «е»
-  show "ё": "е"
-  show "Ё": "Е"
+  // заменять «ё» на «е», если язык русский
+  show "ё": it => if lang == "ru" { "е" } else { it }
+  show "Ё": it => if lang == "ru" { "Е" } else { it }
 
   // TODO: проверять, есть ли символ двоеточия перед списком
   // TODO: проверять, не заканчивается ли раздел списком или figure
@@ -398,7 +398,7 @@
   
   let right-style_italize-latin(content) = if italize-latin { style-italze-latin(content); } else { content; }
 
-  let right-style_fix-common-styling-issues(content) = if fix-common-styling-issues { style-fix-common-styling-issues(right-style_italize-latin(content)); } else { right-style_italize-latin(content); }
+  let right-style_fix-common-styling-issues(content) = if fix-common-styling-issues { style-fix-common-styling-issues(right-style_italize-latin(content), lang: lang); } else { right-style_italize-latin(content); }
 
   right-style_fix-common-styling-issues(content);
 }
