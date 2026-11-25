@@ -101,6 +101,9 @@
   // без жирного текста
   show strong: it => it.body
 
+  // без курсива
+  show emph: it => it.body
+
   // заменять «ё» на «е»
   show "ё": "е"
   show "Ё": "Е"
