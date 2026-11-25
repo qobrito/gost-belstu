@@ -573,31 +573,74 @@
 
 //---------- Стилизированное отображение ----------//
 
-// числа
+// числа (8.13)
 //
-// - digits: число знаков после запятой. Хвостовые нули сохраняются
-//   (0.5 → 0,500), чтобы точность чисел была одинаковой (8.13).
-//   Для целых (int) дробная часть не выводится.
-//   При scientific: true — число знаков после запятой у мантиссы.
-// - minus: "word" — «минус 5» (для текста), "sign" — «−5» (для таблиц и формул).
-// - Целая часть из 5 и более цифр разбивается на группы по три
-//   неразрывным пробелом: 12 345. Всё число в box, чтобы не переносилось.
-#let style-number(number, digits: 3, scientific: false, minus: "sign") = {
+// Точность (указывается что-то одно):
+// - significant: число значащих цифр. По умолчанию 3, как для окончательных
+//   результатов; для промежуточных расчетов стандарт требует не менее 4.
+// - digits: число знаков после запятой.
+// Хвостовые нули сохраняются (1.5 → 1,50), чтобы точность была выровнена.
+// Целые числа (int) не округляются и выводятся без дробной части.
+// При scientific: true точность относится к мантиссе: 1,23 · 10^5.
+//
+// - minus: "word" — «минус 5» (для текста), "sign" — «−5» (для формул,
+//   таблиц и иллюстраций, где знак «минус» допускается).
+// - unit: единица измерения, ставится через неразрывный пробел: «100 кВт».
+//   Перед знаками над строкой (°, ′, ″) пробел не ставится: «20°», но «20 °С».
+// - group-thousands: разбивать целую часть из 5 и более цифр на группы
+//   по три неразрывным пробелом: 12 345.
+// Число вместе с единицей помещается в box и не переносится.
+#let style-number(
+  number,
+  significant: auto,
+  digits: auto,
+  scientific: false,
+  minus: "word",
+  unit: none,
+  group-thousands: false,
+) = {
   assert(minus in ("word", "sign"), message: "minus должен быть \"word\" или \"sign\"")
-  assert(type(digits) == int and digits >= 0, message: "digits должно быть целым числом >= 0")
+  assert(significant == auto or digits == auto, message: "укажите что-то одно: significant или digits")
+  if digits != auto {
+    assert(type(digits) == int and digits >= 0, message: "digits должно быть целым числом >= 0")
+  }
+  let significant = if significant == auto and digits == auto { 3 } else { significant }
+  if significant != auto {
+    assert(type(significant) == int and significant >= 1, message: "significant должно быть целым числом >= 1")
+  }
 
   let nbsp = "\u{00A0}"
 
-  // округляет a >= 0 до d знаков: (целая часть, дробная часть с хвостовыми нулями)
+  // порядок числа a > 0: 1234 → 3, 0,05 → −2 (с поправкой на погрешность log)
+  let exp10(a) = {
+    let e = calc.floor(calc.log(a))
+    if calc.pow(10.0, e + 1) <= a { e + 1 } else if calc.pow(10.0, e) > a { e - 1 } else { e }
+  }
+
+  // округляет a >= 0 до d знаков после запятой (d < 0 — до десятков, сотен…):
+  // (целая часть, дробная часть с хвостовыми нулями)
   let fixed(a, d) = {
-    if type(a) == int or d == 0 { return (str(int(calc.round(a))), "") }
+    if d <= 0 {
+      let scale = calc.pow(10, -d)
+      return (str(int(calc.round(a / scale)) * scale), "")
+    }
     let scale = calc.pow(10, d)
     let scaled = int(calc.round(a * scale))
     let f = str(calc.rem(scaled, scale))
     (str(calc.quo(scaled, scale)), "0" * (d - f.len()) + f)
   }
 
-  let group(s) = if s.len() <= 4 { s } else {
+  // округляет a >= 0 до n значащих цифр
+  let sig-fixed(a, n) = {
+    if a == 0 { return fixed(0.0, n - 1) }
+    let e = exp10(a)
+    let (i, f) = fixed(a, n - 1 - e)
+    // округление могло добавить разряд: 9,996 → 10,00 вместо 10,0
+    let v = float(if f == "" { i } else { i + "." + f })
+    if exp10(v) > e { fixed(a, n - 2 - e) } else { (i, f) }
+  }
+
+  let group(s) = if not group-thousands or s.len() <= 4 { s } else {
     let parts = ()
     let i = s.len()
     while i > 0 {
@@ -609,29 +652,45 @@
 
   let join(i, f) = if f == "" { i } else { i + "," + f }
 
-  let sign-of(is-zero) = if number >= 0 or is-zero { [] }
+  let a = calc.abs(number)
+
+  let (i, f, e) = if scientific {
+    let decimals = if digits != auto { digits } else { significant - 1 }
+    if a == 0 {
+      (..fixed(0.0, decimals), none)
+    } else {
+      let e = exp10(a)
+      let (i, f) = fixed(a / calc.pow(10.0, e), decimals)
+      // округление мантиссы может дать 10,00 → 1,000 · 10^(e+1)
+      if i == "10" {
+        e += 1
+        (i, f) = fixed(a / calc.pow(10.0, e), decimals)
+      }
+      (i, f, e)
+    }
+  } else if type(number) == int {
+    (str(a), "", none)
+  } else if digits != auto {
+    (..fixed(a, digits), none)
+  } else {
+    (..sig-fixed(a, significant), none)
+  }
+
+  let is-zero = i.replace("0", "") == "" and f.replace("0", "") == ""
+  let sign = if number >= 0 or is-zero { [] }
     else if minus == "word" { [#tr[минус][мінус]#nbsp] }
     else { sym.minus }
 
-  let a = calc.abs(number)
-
-  if scientific {
-    if number == 0 { return box(join(..fixed(0.0, digits))) }
-
-    let e = calc.floor(calc.log(a))
-    let (i, f) = fixed(a / calc.pow(10.0, e), digits)
-    // округление мантиссы может дать 10,00 → 1,000 · 10^(e+1)
-    if i == "10" {
-      e += 1
-      (i, f) = fixed(a / calc.pow(10.0, e), digits)
-    }
-    let exp = str(e).replace("-", "\u{2212}")
-    return box[#sign-of(false)$#join(i, f) dot 10^#exp$]
+  let value = if e == none { join(group(i), f) } else {
+    $#join(i, f) dot 10^#str(e).replace("-", "\u{2212}")$
   }
 
-  let (i, f) = fixed(a, digits)
-  let is-zero = i == "0" and f.replace("0", "") == ""
-  box[#sign-of(is-zero)#join(group(i), f)]
+  let unit-part = if unit == none { [] } else {
+    let unit-text = if type(unit) == str { unit } else if type(unit) == content and unit.has("text") { unit.text } else { none }
+    if unit-text in ("°", "′", "″") { [#unit] } else { [#nbsp#unit] }
+  }
+
+  box[#sign#value#unit-part]
 }
 
 // deprecated
