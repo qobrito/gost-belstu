@@ -398,7 +398,7 @@
   
   let right-style_italize-latin(content) = if italize-latin { style-italze-latin(content); } else { content; }
 
-  let right-style_fix-common-styling-issues(content) = if fix-common-styling-issues { style-fix-common-styling-issues(right-style_italize-latin(content), lang: lang); } else { right-style_italize-latin(content); }
+  let right-style_fix-common-styling-issues(content) = if fix-common-styling-issues { style-fix-common-styling-issues(right-style_italize-latin(content), lang); } else { right-style_italize-latin(content); }
 
   right-style_fix-common-styling-issues(content);
 }
