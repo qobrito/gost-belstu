@@ -574,53 +574,64 @@
 //---------- Стилизированное отображение ----------//
 
 // числа
-#let style-number(number, digits: 3, scientific: false) = {
-  if scientific {
-    let sig = digits + 1
-    // Handle zero
-    if number == 0 { return [$0$] }
+//
+// - digits: число знаков после запятой. Хвостовые нули сохраняются
+//   (0.5 → 0,500), чтобы точность чисел была одинаковой (8.13).
+//   Для целых (int) дробная часть не выводится.
+//   При scientific: true — число знаков после запятой у мантиссы.
+// - minus: "word" — «минус 5» (для текста), "sign" — «−5» (для таблиц и формул).
+// - Целая часть из 5 и более цифр разбивается на группы по три
+//   неразрывным пробелом: 12 345. Всё число в box, чтобы не переносилось.
+#let style-number(number, digits: 3, scientific: false, minus: "word") = {
+  assert(minus in ("word", "sign"), message: "minus должен быть \"word\" или \"sign\"")
+  assert(type(digits) == int and digits >= 0, message: "digits должно быть целым числом >= 0")
 
-    let s = if number < 0 { "-" } else { "" }
-    let a = calc.abs(number)
-    // exponent = floor(log10(a))
-    let e = calc.floor(calc.ln(a) / calc.ln(10))
-    let m = a / calc.pow(10, e)
+  let nbsp = "\u{00A0}"
 
-    // round mantissa to `sig` significant digits
-    // shift = number of digits before decimal in mantissa (0..)
-    let shift = calc.floor(calc.ln(m) / calc.ln(10)) + 1
-    let factor = calc.pow(10, (sig - shift))
-    let mant = calc.round(m * factor) / factor
-
-    // if rounding pushes mant >= 10, adjust
-    if mant >= 10 {
-      mant = mant / 10
-      e = e + 1
-    }
-
-    // format mantissa: remove trailing zeros
-    let mant-s = str(mant)
-    if mant-s.contains(".") {
-      while mant-s.ends-with("0") { mant-s = mant-s.slice(0, mant-s.len() - 1) }
-      if mant-s.ends-with(".") { mant-s = mant-s.slice(0, mant-s.len() - 1) }
-    }
-    mant-s = mant-s.replace(".", ",")
-
-    return [$#s #mant-s dot 10^#text[#str(e)]$]
+  // округляет a >= 0 до d знаков: (целая часть, дробная часть с хвостовыми нулями)
+  let fixed(a, d) = {
+    if type(a) == int or d == 0 { return (str(int(calc.round(a))), "") }
+    let scale = calc.pow(10, d)
+    let scaled = int(calc.round(a * scale))
+    let f = str(calc.rem(scaled, scale))
+    (str(calc.quo(scaled, scale)), "0" * (d - f.len()) + f)
   }
 
-  let number = calc.round(number, digits: digits)
-  let sign = if number < 0 { "-" } else { "" }
+  let group(s) = if s.len() <= 4 { s } else {
+    let parts = ()
+    let i = s.len()
+    while i > 0 {
+      parts.insert(0, s.slice(calc.max(0, i - 3), i))
+      i -= 3
+    }
+    parts.join(nbsp)
+  }
+
+  let join(i, f) = if f == "" { i } else { i + "," + f }
+
+  let sign-of(is-zero) = if number >= 0 or is-zero { [] }
+    else if minus == "word" { [#tr[минус][мінус]#nbsp] }
+    else { sym.minus }
+
   let a = calc.abs(number)
-  let int-part = calc.floor(a)
-  let frac = a - int-part
 
-  sign
-  str(int-part)
-  if frac != 0 {
-    ","
-    str(calc.round(frac, digits: digits)).replace("0.", "")
+  if scientific {
+    if number == 0 { return box(join(..fixed(0.0, digits))) }
+
+    let e = calc.floor(calc.log(a))
+    let (i, f) = fixed(a / calc.pow(10.0, e), digits)
+    // округление мантиссы может дать 10,00 → 1,000 · 10^(e+1)
+    if i == "10" {
+      e += 1
+      (i, f) = fixed(a / calc.pow(10.0, e), digits)
+    }
+    let exp = str(e).replace("-", "\u{2212}")
+    return box[#sign-of(false)$#join(i, f) dot 10^#exp$]
   }
+
+  let (i, f) = fixed(a, digits)
+  let is-zero = i == "0" and f.replace("0", "") == ""
+  box[#sign-of(is-zero)#join(group(i), f)]
 }
 
 // deprecated
