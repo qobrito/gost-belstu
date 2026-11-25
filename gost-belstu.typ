@@ -876,3 +876,329 @@
 
 
 
+/*
+
+# AGENTS.md
+
+Guidelines for AI agents (and people) writing the explanatory note of a BSTU
+course project or course paper with this Typst template.
+
+Source: «Положение о курсовом проектировании» БГТУ 2024
+(`fonts/Положение о КП БГТУ 2024.pdf`). Clause numbers below (8.6, 8.13 …)
+refer to that document.
+
+This guide is in English, but **the document itself must be written in Russian
+or Belarusian** (8.2). Every quoted word below («минус», «где», «Таблица» …)
+is the exact text to put in the document.
+
+## Priorities
+
+When requirements conflict, follow them in this order:
+
+1. **The assignment** (задание на курсовой проект / курсовую работу) and the
+   supervisor's instructions. If the assignment lists sections, calculations,
+   drawings or a volume that differ from this guide, **do what the assignment
+   says**.
+2. The department's methodological guidelines (методические указания): the
+   standard lets each department set the composition and structure of the work
+   (7.1, 7.3.5, 7.4).
+3. The standard (the PDF).
+4. This guide.
+
+## Document setup
+
+```typst
+#import "gost-belstu.typ" as gost
+#show: it => gost.styles(it)              // Russian
+// #show: it => gost.styles(it, lang: "be") // Belarusian
+```
+
+The template sets all page, font, spacing and numbering formatting. **Do not
+override it in the document** with `set` rules, `#v()`, `#h()` or manual line
+breaks, and do not number headings, figures, tables or formulas by hand.
+
+Bold and italics in body text are removed, so do not rely on emphasis for
+meaning.
+
+## Structure (7.3)
+
+Structural elements, in exactly this order:
+
+1. Титульный лист — `gost.simple-title-page-belstu(...)`
+2. Задание на курсовой проект / курсовую работу
+3. Реферат
+4. Оглавление — `#outline()`
+5. Введение
+6. Main part: numbered sections
+7. Заключение
+8. Список использованных источников
+9. Приложения (if needed) — `gost.show-appendices(...)`
+
+The text part (without appendices) should not exceed **30 pages** (7.4).
+
+### Unnumbered headings (8.4)
+
+Write these as ordinary level-1 headings with exactly this text:
+
+| Russian | Belarusian |
+|---|---|
+| `= Реферат` | `= Рэферат` |
+| `= Введение` | `= Уводзіны` |
+| `= Заключение` | `= Заключэнне` |
+| `= Список использованных источников` | `= Спіс выкарыстаных крыніц` |
+| `= Задание на курсовой проект` / `= Задание на курсовую работу` | `= Заданне да курсавога праекту` / `= Заданне да курсавой працы` |
+
+Any other spelling (extra space, different case, a full stop) is numbered as a
+regular section.
+
+### What each element must contain
+
+- **Реферат** (7.3.2, ГОСТ 7.9), 500–800 characters, at most one page:
+  1. volume: number of pages, figures, tables, sources and appendices;
+  2. 5–15 keywords or phrases from the text, in the nominative singular,
+     **in capital letters**, comma-separated, on one line without paragraph
+     indent, **no full stop at the end**;
+  3. the abstract text: main theoretical and experimental results, facts,
+     relationships found, with the practically significant ones first;
+     at the end, the number of drawing sheets (if any).
+- **Введение** (7.3.4): state of the problem, relevance, goals and tasks.
+- **Main part** (7.3.5): sections and subsections as set by the assignment and
+  the department.
+- **Заключение** (7.3.6): main conclusions, key technical characteristics and
+  technical-economic indicators of the designed objects (power, energy
+  consumption, cost…), recommendations for practical use.
+- **Список использованных источников** (7.3.7): all sources, **in order of
+  first citation in the text**, formatted per ГОСТ 7.1.
+
+## Headings (8.3)
+
+- `=` section, `==` subsection, `===` item (пункт). Every one of them must have
+  a title. Sub-items (подпункты) have **no** title: write them as a paragraph.
+- Sentence case: first letter capital, the rest lower case (except proper
+  names and abbreviations).
+- **No full stop at the end.** Two sentences in one heading are separated by a
+  full stop.
+- Keep titles short: hyphenation in headings is not allowed.
+- Do not put two headings without text between them, except a section directly
+  followed by its first subsection.
+
+## Writing style (8.13, 7.5)
+
+Write logically, concisely, in a scientific-technical register.
+
+Not allowed in the text:
+
+- colloquial phrases, jargon, professional slang;
+- synonyms for the same concept: pick one term and keep it;
+- foreign words when an equivalent Russian/Belarusian term exists;
+- invented word forms;
+- abbreviations other than those allowed by spelling rules, ГОСТ 7.12 /
+  СТБ 7.12, or listed in the document's own list of abbreviations;
+- abbreviated unit names without a number («несколько кВт» is wrong; write
+  «несколько киловатт»).
+
+Not allowed outside formulas, tables and figures:
+
+- the minus sign before a negative value: write «минус» («от минус 18 до
+  плюс 7 °С»);
+- «Ø»: write «диаметр»;
+- `>`, `<`, `=`, `≥`, `≤`, `≠`, `№`, `%` without a number next to them;
+- `×` or `*` for multiplication in formulas and calculations: use `·`
+  (`dot` in Typst math). `×` is allowed only when a formula is wrapped onto the
+  next line at a multiplication;
+- a standard's code without its registration number («по ГОСТ» is wrong,
+  «по ГОСТ 2.301» is right). Do not add the year («ГОСТ 2.301-68» is wrong).
+  Never break a document code from its number across lines: use `~`
+  (non-breaking space), e.g. `ГОСТ~2.301`.
+
+## Numbers and units (8.13)
+
+Use `gost.style-number` for computed values in the text:
+
+```typst
+#gost.style-number(3.14159)                       // 3,14  (3 significant digits)
+#gost.style-number(1.5, significant: 4)           // 1,500
+#gost.style-number(-18, unit: [°С])               // минус 18 °С
+#gost.style-number(-18, minus: "sign")            // −18   (tables, formulas)
+#gost.style-number(1.5e5, scientific: true, unit: [Вт])  // 1,50 · 10⁵ Вт
+```
+
+- Decimal separator is a comma. Fractions are decimal (except inches).
+- Intermediate results: **at least 4 significant digits**. Final results:
+  **3 significant digits**. Integers and values from reference literature are
+  not rounded.
+- Keep the same precision within a section; keep trailing zeros («2,0»).
+- Use SI units (ГОСТ 8.417). A non-SI result must be converted:
+  «Qн = 8,57 Гкал/м3 = 35,88 МДж/м3».
+- Keep one unit for a quantity throughout a section.
+- Space between number and unit: «100 кВт», «80 %», «20 °С»; no space before a
+  superscript sign: «20°». The number and the unit must never be split across
+  lines (use `unit:` or `~`).
+- Unit symbols are upright, without a full stop; products use `·`: «Н·м»,
+  «Па·с». Do not mix symbols and names: «80 км/ч» or «80 километров в час»,
+  never «80 км/час».
+- In a list or range, write the unit once, after the last value:
+  «1,5; 2,0; 3,0 м», «от минус 18 до плюс 7 °С».
+- Numbers 1–9 without units are written in words («шесть гаек», «равно трем»);
+  values with units and counts with units («5 шт.») are written in digits.
+
+## Lists (8.6)
+
+- A list follows a colon.
+- Nesting levels give `–`, then `а)`, then `1)`. Within one level use the same
+  marker (`-` or `+`), otherwise numbering restarts.
+- Items start with a lower-case letter and end with «;», the last one with «.».
+  An item that introduces a nested list ends with «:».
+
+```typst
+Теплообменники бывают:
+- поверхностные:
+  - трубчатые:
+    - кожухотрубчатые;
+    - двухтрубные;
+  - пластинчатые;
+- регенеративные.
+```
+
+## Citations (8.7)
+
+- Every definition, formula, equation and reference value taken from a source
+  needs a citation.
+- Citation: source number in square brackets **at the end of the statement**:
+  «…приведен в работе [8]». With a page, table or formula:
+  «…по [8] с. 28», «…в справочнике [6] таблица 2.8», «…по [8] формула (19)».
+- Use Typst citations (`@key`) with a `bibliography(...)`.
+- When the text names a normative document by code (e.g. «ТКП 424»), no extra
+  bracket citation is needed.
+
+## Formulas (8.8)
+
+Every calculation follows this sequence (8.8.5):
+
+1. introduce the quantity with its symbol and unit and cite the source;
+2. the formula in general form;
+3. «где» on a new line, **no colon, no paragraph indent**, then each symbol
+   explained in the order it appears in the formula, with its unit;
+4. the numeric value of every quantity, in formula order, each with its source;
+5. the substitution and the final result with the unit.
+   **No intermediate steps, cancellations or strike-throughs.**
+
+```typst
+Ориентировочная поверхность теплообмена $F_"ор"$, м#super[2], определяется
+по [8] формула (19):
+
+$ F_"ор" = Q / (K_"ор" dot Delta t_"ср"), $ <eq-area>
+
+#par(first-line-indent: 0pt)[где $Q$ -- тепловой поток, Вт; \
+$K_"ор"$ -- ориентировочное значение коэффициента теплопередачи, Вт/(м#super[2]·К); \
+$Delta t_"ср"$ -- средняя разность температур, К.]
+
+$Q = "1,50" dot 10^5$ Вт -- по заданию; $K_"ор" = 250$ Вт/(м#super[2]·К) -- по [6]
+таблица 2.8; $Delta t_"ср" = 40$ К -- из второго раздела.
+
+$ F_"ор" = ("1,50" dot 10^5) / (250 dot 40) = "15,0" "м"^2. $
+```
+
+- Cyrillic subscripts and units in math go in quotes: `F_"ор"`, `"м"^2`.
+- **Decimal numbers inside math go in quotes**: `"1,50"`. Unquoted `1,50` is
+  typeset as «1, 50» with a space after the comma.
+- Use symbols from the relevant standards, otherwise those accepted in the
+  field.
+- Wrap a long formula only at an operation sign and repeat the sign at the
+  start of the next line (`×` for multiplication).
+- Refer to formulas by number: «…по формуле (2.8)…», «…зависимость (А.6)…».
+  Write the word yourself and add `[]`: `по формуле @eq-area[]` gives
+  «по формуле (1.1)». Plain `@eq-area` gives «Уравнение (1.1)», which is
+  wrong.
+- Calculations in SI only (8.8.1).
+
+### Notes (8.8.8–8.8.10)
+
+Placed right after the text, figure or inside the table they refer to,
+12 pt, with a paragraph indent:
+
+- one note: «Примечание – Текст примечания.» (not numbered);
+- several: «Примечания» then «1 …», «2 …» on separate lines, numbers without a
+  dot.
+
+## Figures (8.9, 8.10)
+
+```typst
+Схема прибора приведена на рисунке @fig-scheme[]. // reference BEFORE the figure
+
+#figure(
+  image("scheme.png"),
+  caption: [Монтажная схема прибора],
+) <fig-scheme>
+```
+
+- Place a figure right after the first reference to it, or on the next page.
+  Every figure must be referenced: «в соответствии с рисунком 3.1». Write the
+  word in the right case yourself and add `[]`: `рисунком @fig-scheme[]`.
+- Caption: write only the title («Монтажная схема прибора»), capital first
+  letter, **no full stop**.
+- Legend (подрисуночный текст) goes above the caption: «1 – блок А; 2 – блок Б».
+- In your images: labels are 12 pt; position and curve labels are italic
+  digits.
+- Charts: each curve is labelled with a digit, not with colours or markers.
+  Scale numbers sit outside the plot area and horizontally. Axis labels as
+  symbols are horizontal; as names they run parallel to the axis. Axes without
+  scales end with arrows.
+
+## Tables (8.11)
+
+```typst
+Результаты приведены в таблице @tab-kpd[].
+
+#figure(
+  table(
+    columns: 3,
+    table.header[Частота вращения, мин#super[–1]][Крутящий момент, Н·мм][КПД],
+    [480], [20], [0,65],
+  ),
+  caption: [Значения КПД червячного зацепления],
+) <tab-kpd>
+```
+
+- Place a table right after the first reference to it or on the next page.
+  Every table must be referenced: «по данным, приведенным в таблице 3.1»
+  (`в таблице @tab-kpd[]`).
+- Caption: write only the title, capital first letter, **no full stop**.
+- Column and row headings: capital first letter, **singular**, no full stop.
+  Sub-headings are lower case if they continue the heading's sentence.
+- No «№ п/п» column. Units go in the heading after a comma:
+  «Установленная мощность, кВт».
+- Use `table.header` for the header row; no diagonal lines in the header.
+
+## Appendices (7.3.8, 8.12)
+
+```typst
+#gost.show-appendices(additional-elements: (
+  [Исходный код программы],   // appendix title
+  figure(raw(read("main.c"), lang: "c", block: true), caption: [Листинг]),
+))
+```
+
+- Every appendix must be referenced in the text; appendices go in order of
+  reference.
+- The title is in sentence case, without a full stop.
+
+## Checklist before finishing
+
+- [ ] Everything the assignment requires is present.
+- [ ] All structural elements present, in order, with the exact heading text.
+- [ ] No full stops at the end of headings and captions.
+- [ ] Every figure, table, appendix and source is referenced in the text;
+      references come before the object.
+- [ ] Every borrowed formula, value and definition has a «[n]» citation.
+- [ ] Every formula is followed by «где» and a symbol list (unless the symbols
+      were already explained).
+- [ ] No minus sign, «Ø», bare `%`/`№`/`<`/`>` in running text.
+- [ ] Units in SI, number and unit not split, one unit per quantity per section.
+- [ ] Final results with 3 significant digits, intermediate with ≥ 4.
+- [ ] Lists follow a colon, items end with «;» and the last with «.».
+- [ ] Text part ≤ 30 pages; Реферат 500–800 characters.
+- [ ] The document compiles without warnings.
+
+
+*/
